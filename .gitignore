@@ -13,4 +13,5 @@ dist
 *.log
 *.tsbuildinfo
 data/local-store.json
+deployment/package
 docs

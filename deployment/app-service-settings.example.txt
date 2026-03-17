@@ -1,0 +1,24 @@
+# Azure App Service configuration example
+# Add these values in Azure Portal > App Service > Environment variables.
+# Startup Command (Linux App Service): node server.js
+# Recommended App Service OS: Linux
+
+WEBSITE_NODE_DEFAULT_VERSION=~20
+SCM_DO_BUILD_DURING_DEPLOYMENT=false
+NODE_ENV=production
+PORT=8080
+HOSTNAME=0.0.0.0
+APP_TIMEZONE=Asia/Seoul
+NEXT_PUBLIC_APP_NAME=PlanMate
+
+# Azure SQL
+DB_SERVER=
+DB_PORT=1433
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_ENCRYPT=true
+
+# GitHub Actions
+# Repository variable: AZURE_WEBAPP_NAME=<your app service name>
+# Repository secret: AZURE_WEBAPP_PUBLISH_PROFILE=<publish profile xml>

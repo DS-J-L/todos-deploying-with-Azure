@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit"
+    "start:azure": "node .next/standalone/server.js",
+    "typecheck": "next typegen && tsc --noEmit",
+    "package:azure": "node scripts/prepare-appservice.mjs"
+  },
+  "engines": {
+    "node": ">=20 <23"
   },
   "dependencies": {
     "mssql": "latest",

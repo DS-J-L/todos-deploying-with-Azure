@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
-// Keep Next.js config intentionally small until Azure deployment settings are finalized.
-const nextConfig: NextConfig = {};
+// Use standalone output so Azure App Service can run the bundled Node server directly.
+const nextConfig: NextConfig = {
+  output: "standalone"
+};
 
 export default nextConfig;
-
