@@ -1,3 +1,4 @@
+import { AppError } from "@/lib/api/errors";
 import { expandOccurrencesWithinRange } from "@/lib/date/recurrence";
 import { getRangeForView } from "@/lib/date/range";
 import * as eventRepository from "@/repositories/event.repository";
@@ -19,6 +20,24 @@ function mergeCompletionState(items: OccurrenceItem[], completions: OccurrenceSt
   }));
 }
 
+function normalizeEventInput(payload: EventMutationInput): EventMutationInput {
+  const recurrenceDaysOfWeek =
+    payload.recurrenceType === "weekly"
+      ? [...new Set(payload.recurrenceDaysOfWeek)].sort((left, right) => left - right)
+      : [];
+
+  const recurrenceInterval = payload.recurrenceType === "none" ? 1 : payload.recurrenceInterval;
+  const recurrenceUntil = payload.recurrenceType === "none" ? null : payload.recurrenceUntil;
+
+  return {
+    ...payload,
+    description: payload.description?.trim() ? payload.description.trim() : null,
+    recurrenceInterval,
+    recurrenceDaysOfWeek,
+    recurrenceUntil
+  };
+}
+
 export async function getOccurrencesForRange(view: CalendarView, anchorDate: string) {
   const range = getRangeForView(view, anchorDate);
   const events = await eventRepository.listEventsOverlappingRange(range.start, range.end);
@@ -27,7 +46,13 @@ export async function getOccurrencesForRange(view: CalendarView, anchorDate: str
   const occurrences = mergeCompletionState(
     events.flatMap((event) => expandOccurrencesWithinRange(event, range.start, range.end)),
     completions
-  );
+  ).sort((left, right) => {
+    if (left.occurrenceDate !== right.occurrenceDate) {
+      return left.occurrenceDate.localeCompare(right.occurrenceDate);
+    }
+
+    return left.title.localeCompare(right.title, "ko");
+  });
 
   return { view, range, occurrences };
 }
@@ -37,23 +62,33 @@ export async function getEventDetail(id: string) {
 }
 
 export async function createEvent(payload: EventMutationInput) {
-  // TODO: zod 검증/정규화가 추가되면 여기에서 recurrenceType별 정책을 한 번 더 보정한다.
-  return eventRepository.createEvent(payload);
+  return eventRepository.createEvent(normalizeEventInput(payload));
 }
 
 export async function updateEvent(id: string, payload: EventMutationInput) {
-  return eventRepository.updateEvent(id, payload);
+  const result = await eventRepository.updateEvent(id, normalizeEventInput(payload));
+
+  if (!result.updated) {
+    throw new AppError("NOT_FOUND", "수정할 일정을 찾을 수 없습니다.", 404);
+  }
+
+  return result;
 }
 
 export async function deleteEvent(id: string) {
-  return eventRepository.softDeleteEvent(id);
+  const result = await eventRepository.softDeleteEvent(id);
+
+  if (!result.deleted) {
+    throw new AppError("NOT_FOUND", "삭제할 일정을 찾을 수 없습니다.", 404);
+  }
+
+  return result;
 }
 
 export async function completeOccurrence(event: EventRecord, occurrenceDate: string, isCompleted: boolean) {
   if (!expandOccurrencesWithinRange(event, occurrenceDate, occurrenceDate).length) {
-    throw new Error("The requested occurrence does not belong to this event.");
+    throw new AppError("VALIDATION_ERROR", "해당 날짜에는 이 일정이 발생하지 않습니다.", 400);
   }
 
   return occurrenceRepository.upsertOccurrenceCompletion(event.id, occurrenceDate, isCompleted);
 }
-

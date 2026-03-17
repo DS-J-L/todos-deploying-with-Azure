@@ -1,8 +1,34 @@
-import { jsonNotImplemented } from "@/lib/api/response";
+import { AppError, handleRouteError } from "@/lib/api/errors";
+import { jsonSuccess } from "@/lib/api/response";
+import { completeOccurrence, getEventDetail } from "@/services/event.service";
+import {
+  completionMutationSchema,
+  eventIdSchema,
+  occurrenceDateSchema
+} from "@/lib/validation/event";
 
-// PATCH /api/events/:id/occurrences/:date/complete
-// TODO: 특정 발생일 유효성 검증 후 completion upsert를 수행한다.
-export async function PATCH() {
-  return jsonNotImplemented("발생일 완료 처리 API는 아직 구현되지 않았습니다.");
+type RouteContext = {
+  params: Promise<{
+    id: string;
+    date: string;
+  }>;
+};
+
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const { id, date } = await context.params;
+    const eventId = eventIdSchema.parse(id);
+    const occurrenceDate = occurrenceDateSchema.parse(date);
+    const payload = completionMutationSchema.parse(await request.json());
+    const event = await getEventDetail(eventId);
+
+    if (!event) {
+      throw new AppError("NOT_FOUND", "일정을 찾을 수 없습니다.", 404);
+    }
+
+    const result = await completeOccurrence(event, occurrenceDate, payload.isCompleted);
+    return jsonSuccess(result);
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
-

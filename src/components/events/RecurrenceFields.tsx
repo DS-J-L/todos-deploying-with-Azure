@@ -16,6 +16,24 @@ export function RecurrenceFields({
   recurrenceUntil,
   onChange
 }: RecurrenceFieldsProps) {
+  const weekdays = [
+    { label: "일", value: 0 },
+    { label: "월", value: 1 },
+    { label: "화", value: 2 },
+    { label: "수", value: 3 },
+    { label: "목", value: 4 },
+    { label: "금", value: 5 },
+    { label: "토", value: 6 }
+  ];
+
+  function toggleDay(day: number) {
+    const nextDays = recurrenceDaysOfWeek.includes(day)
+      ? recurrenceDaysOfWeek.filter((value) => value !== day)
+      : [...recurrenceDaysOfWeek, day].sort((left, right) => left - right);
+
+    onChange({ recurrenceDaysOfWeek: nextDays });
+  }
+
   return (
     <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-slate-50 p-4">
       <div>
@@ -59,11 +77,23 @@ export function RecurrenceFields({
           {recurrenceType === "weekly" ? (
             <div>
               <p className="text-sm font-medium text-slate-900">요일 선택</p>
-              <p className="mt-2 text-xs text-[var(--muted)]">
-                실제 구현에서는 토글 버튼 그룹으로 교체하고, 값은 0~6 숫자 규칙으로 통일합니다.
-              </p>
-              <div className="mt-2 rounded-2xl border border-dashed border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--muted)]">
-                선택됨: {recurrenceDaysOfWeek.length > 0 ? recurrenceDaysOfWeek.join(", ") : "없음"}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {weekdays.map((weekday) => {
+                  const isSelected = recurrenceDaysOfWeek.includes(weekday.value);
+
+                  return (
+                    <button
+                      className={`rounded-full border px-3 py-1.5 text-sm ${
+                        isSelected ? "border-slate-900 bg-slate-900 text-white" : "border-[var(--border)] bg-white"
+                      }`}
+                      key={weekday.value}
+                      onClick={() => toggleDay(weekday.value)}
+                      type="button"
+                    >
+                      {weekday.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -85,4 +115,3 @@ export function RecurrenceFields({
     </div>
   );
 }
-

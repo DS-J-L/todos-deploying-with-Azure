@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { RecurrenceFields } from "@/components/events/RecurrenceFields";
 import type { EventFormValues, EventMutationInput } from "@/types/event";
 
@@ -11,6 +15,14 @@ type EventModalProps = {
 
 // This file captures the input surface agreed in docs before real form state and validation are added.
 export function EventModal({ mode, initialValues, open, onClose, onSubmit }: EventModalProps) {
+  const [formValues, setFormValues] = useState<EventFormValues>(initialValues);
+
+  useEffect(() => {
+    if (open) {
+      setFormValues(initialValues);
+    }
+  }, [initialValues, open]);
+
   if (!open) {
     return null;
   }
@@ -28,7 +40,7 @@ export function EventModal({ mode, initialValues, open, onClose, onSubmit }: Eve
         className="mt-6 space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          onSubmit(initialValues);
+          onSubmit(formValues);
         }}
       >
         <div>
@@ -37,10 +49,11 @@ export function EventModal({ mode, initialValues, open, onClose, onSubmit }: Eve
           </label>
           <input
             className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-3 py-2"
-            defaultValue={initialValues.title}
             id="title"
             name="title"
+            onChange={(event) => setFormValues((current) => ({ ...current, title: event.target.value }))}
             placeholder="예: 알고리즘 과제"
+            value={formValues.title}
           />
         </div>
 
@@ -50,10 +63,16 @@ export function EventModal({ mode, initialValues, open, onClose, onSubmit }: Eve
           </label>
           <textarea
             className="mt-2 min-h-28 w-full rounded-2xl border border-[var(--border)] bg-white px-3 py-2"
-            defaultValue={initialValues.description ?? ""}
             id="description"
             name="description"
+            onChange={(event) =>
+              setFormValues((current) => ({
+                ...current,
+                description: event.target.value.length > 0 ? event.target.value : null
+              }))
+            }
             placeholder="예: 정렬 파트 복습"
+            value={formValues.description ?? ""}
           />
         </div>
 
@@ -63,19 +82,20 @@ export function EventModal({ mode, initialValues, open, onClose, onSubmit }: Eve
           </label>
           <input
             className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-3 py-2"
-            defaultValue={initialValues.startDate}
             id="startDate"
             name="startDate"
+            onChange={(event) => setFormValues((current) => ({ ...current, startDate: event.target.value }))}
             type="date"
+            value={formValues.startDate}
           />
         </div>
 
         <RecurrenceFields
-          onChange={() => undefined}
-          recurrenceDaysOfWeek={initialValues.recurrenceDaysOfWeek}
-          recurrenceInterval={initialValues.recurrenceInterval}
-          recurrenceType={initialValues.recurrenceType}
-          recurrenceUntil={initialValues.recurrenceUntil}
+          onChange={(nextState) => setFormValues((current) => ({ ...current, ...nextState }))}
+          recurrenceDaysOfWeek={formValues.recurrenceDaysOfWeek}
+          recurrenceInterval={formValues.recurrenceInterval}
+          recurrenceType={formValues.recurrenceType}
+          recurrenceUntil={formValues.recurrenceUntil}
         />
 
         <div className="flex justify-end gap-3">

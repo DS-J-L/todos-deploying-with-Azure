@@ -15,7 +15,10 @@ export type EventRecord = {
   recurrenceInterval: number;
   recurrenceDaysOfWeek: number[];
   recurrenceUntil: string | null;
+  isArchived?: boolean;
   deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type EventMutationInput = Omit<EventRecord, "deletedAt" | "id">;
@@ -35,4 +38,3 @@ export type OccurrenceStatusRecord = {
   occurrenceDate: string;
   isCompleted: boolean;
 };
-

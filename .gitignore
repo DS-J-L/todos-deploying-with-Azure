@@ -12,3 +12,5 @@ coverage
 dist
 *.log
 *.tsbuildinfo
+data/local-store.json
+docs

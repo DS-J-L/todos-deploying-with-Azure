@@ -16,9 +16,15 @@ export function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-export function getTodayDateKey() {
-  // Replace this with app-timezone aware logic when the first server action is added.
-  return toIsoDate(new Date());
+export function formatLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function getTodayDateKey(date = new Date()) {
+  return formatLocalDateKey(date);
 }
 
 export function addDays(date: Date, amount: number) {
@@ -85,6 +91,20 @@ export function buildMonthMatrix(anchorDate: string) {
   );
 }
 
+export function shiftAnchorDate(view: CalendarView, anchorDate: string, amount: number) {
+  const anchor = parseIsoDate(anchorDate);
+
+  if (view === "day") {
+    return toIsoDate(addDays(anchor, amount));
+  }
+
+  if (view === "week") {
+    return toIsoDate(addDays(anchor, amount * 7));
+  }
+
+  return toIsoDate(addMonths(anchor, amount));
+}
+
 export function getToolbarLabel(view: CalendarView, anchorDate: string) {
   const anchor = parseIsoDate(anchorDate);
   const year = anchor.getUTCFullYear();
@@ -102,4 +122,3 @@ export function getToolbarLabel(view: CalendarView, anchorDate: string) {
 
   return `${year}년 ${month}월`;
 }
-
